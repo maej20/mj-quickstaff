@@ -11,8 +11,7 @@ local Previous = {
   outfit = {}
 }
 
-RegisterNetEvent( 'mj-stafftoggle:client:ToggleStaffMode' )
-AddEventHandler( 'mj-stafftoggle:client:ToggleStaffMode', function( source )
+RegisterNetEvent( 'mj-stafftoggle:client:ToggleStaffMode', function( source )
   local src = source
   if not StaffModeEnabled then
       EnableStaffMode()
@@ -37,7 +36,9 @@ function EnableStaffMode()
           -- Store Player Data
           Previous.money = PlayerData.money
           Previous.metadata = PlayerData.metadata
-          Previous.position = QBCore.Functions.GetCoords( player )
+          Previous.position = QBCore.Functions.GetCoords( player )  -- vector4
+          -- Previous.position = GetEntityCoords(player, false)
+          -- Previous.heading = GetEntityHeading(player)
           Previous.inventory = PlayerData.inventory
           Previous.job = PlayerData.job
           Previous.health = GetEntityHealth( player )
@@ -68,7 +69,6 @@ end
 function DisableStaffMode()
   local player = PlayerPedId()
   StaffModeEnabled = false
-  DoScreenFadeOut(1)
 
   -- Reset Metadata
   TriggerServerEvent( 'QBCore:Server:SetMetaData', "jailitems", Previous.metadata.jailitems )
@@ -100,16 +100,24 @@ function DisableStaffMode()
     local house = Previous.metadata.inside.house
     local apartment = Previous.metadata.inside.apartment.apartmentId
 
-    -- Put Player Back
-    SetEntityCoords( player, Previous.position.x, Previous.position.y, Previous.position.z )
-    SetEntityHeading( player, Previous.position.w )
-
     -- Put In House/Apartment If Needed
     if house then exports['qb-houses']:enterOwnedHouse(house) end
     if apartment then TriggerEvent( 'apartments:client:EnterApartment' ) end
 
-    --Fade Screen Back In If Not Inside (enterOwnedHouse/EnterApartment handle this otherwise)
-    if not house and not apartment then DoScreenFadeIn(250) end
+    -- Put Player Back Where They Were Outside
+    -- or if they were in a spawned interior we'll put them on the ground above the interior
+    -- this is the best I can come up with... Please submit a PR if you know a better way
+    if not house and not apartment then
+      for height = 1, 1000 do
+        local foundGround, zPos = GetGroundZFor_3dCoord(Previous.position.x, Previous.position.y, height + 0.0, 1)
+        if foundGround then
+          SetEntityCoords(player, Previous.position.x, Previous.position.y, zPos)
+          break
+        end
+      end
+      -- SetEntityCoords(player, Previous.position.x, Previous.position.y, Previous.position.z)
+      SetEntityHeading( player, Previous.position.w )
+    end
   end
 
   -- Reset Health (must be in its own thread for some reason **and will only work JUST like this**)
@@ -158,7 +166,6 @@ if Config.AutoGodMode then
             SetVehicleDirtLevel(currVeh)
             SetVehicleUndriveable(currVeh, false)
             WashDecalsFromVehicle(currVeh, 1.0)
-            print(GetVehicleEngineHealth(currVeh))
             if GetVehicleEngineHealth(currVeh) < 1000.0 then SetVehicleFixed(currVeh) end
             SetVehicleEngineOn(currVeh, true, false )
         end
