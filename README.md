@@ -10,7 +10,7 @@ https://github.com/maej20/mj-quickstaff
 
 ## Customization
 
-`./mj-quickstaff/config.lua`
+_**./mj-quickstaff/config.lua**_
 
 - **_ToggleCommand_** - Sets the command used to toggle staff mode on/off. (default = "staff")
 - **_AutoGodMode_** - Turns on godmode while in staff mode. (default = true)
@@ -28,18 +28,13 @@ https://github.com/maej20/mj-quickstaff
 
 - **YouTube Tutorial**: [PENDING]
 
-- **Clone or extract** this repository into your `resources` directory.
+- **Clone or extract** this repository into your _**./resources**_ directory.
 
-- **Edit** _./qb-houses/client/main.lua:564_
+- **Remove** `local` from before the `enterOwnedHouse()` function in _**./resources/[qb]/qb-houses/client/main.lua:564**_.
 
-  - Remove `local` from before the `enterOwnedHouse()` function.
+- **Add** `exports { "enterOwnedHouse" }` to the _end_ of _**./resources/[qb]/qb-houses/fxmanifest.lua**_.
 
-- **Edit** _./qb-houses/fxmanifest.lua_
-  - **Add** this to the _end of the file._
-  ```lua
-  exports { "enterOwnedHouse" }
-  ```
-- **Add** `ensure mj-quickstaff` into your _server.cfg_ **_after the QB-Core resources_**.
+- **Add** `ensure mj-quickstaff` into your _**./server.cfg**_ after the QB-Core resources.
 
 ### TODO
 
